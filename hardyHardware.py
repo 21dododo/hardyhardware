@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
+from locator import *
 
 #function for printing all the items
 def get_items():
@@ -39,30 +40,30 @@ db.execute("DELETE FROM Items")
 #open webdriver
 driver = webdriver.Chrome(executable_path="chromedriver.exe")
 driver.get("http://class.kofax.com/hardyhardware/")
-driver.find_element_by_link_text("Products listing").click()
+driver.find_element(*MainLocators.PRODUCTS_LISTING_BUTTON).click()
 #wait until the page has loaded
 try:
     exwait = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '//*[@id="jsn-pos-breadcrumbs"]/ul/li[3]/span[2]')))
+        EC.presence_of_element_located(MainLocators.PRODUCTS_LISTING_BREADCRUMB))
     #loop the first 3 pages
     for i in range(1,4):
         ##loop through all of the products in the page
         for x in range (0,20):
             #I have to re-initialize the elements every loop run because every time I go back to the product's page the DOM changes.
-            elements = driver.find_elements_by_class_name("hikashop_container")
+            elements = driver.find_elements(*MainLocators.ALL_PRODUCTS)
             element = elements[x]
             #click the product's name to enter its page
-            element.find_element_by_class_name("hikashop_product_name").click()
+            element.find_element(*MainLocators.PRODUCT_NAME).click()
             #wait until the page has loaded
             exwait = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.ID, 'hikashop_main_image')))
+                EC.presence_of_element_located(ProductPageLocators.MAIN_IMAGE))
             #start pulling information
-            name = driver.find_element_by_id('hikashop_product_name_main').text
-            stars = driver.find_element_by_name('hikashop_vote_rating').get_attribute("value")
+            name = driver.find_element(*ProductPageLocators.NAME).text
+            stars = driver.find_element(*ProductPageLocators.STARS).get_attribute("value")
             stars += " stars"
-            desc = driver.find_element_by_class_name("Description").find_element_by_tag_name("p").text
-            over = driver.find_element_by_xpath('//*[@id="hikashop_product_description_main"]/div[2]').find_element_by_tag_name("p").text
-            price = driver.find_element_by_xpath('//*[@id="hikashop_product_price_main"]/span[1]/span[2]').text
+            desc = driver.find_element(*ProductPageLocators.DESCRIPTION).find_element_by_tag_name("p").text
+            over = driver.find_element(*ProductPageLocators.OVEREVIEW).find_element_by_tag_name("p").text
+            price = driver.find_element(*ProductPageLocators.PRICE).text
             #insert to database
             db.execute("INSERT INTO Items VALUES (?, ?, ?, ?, ?)", (name, stars, price, desc, over ))
 
@@ -75,7 +76,7 @@ try:
                 driver.refresh()
             #wait until the page has loaded
             exwait = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="jsn-pos-breadcrumbs"]/ul/li[3]/span[2]')))
+                EC.presence_of_element_located(MainLocators.PRODUCTS_LISTING_BREADCRUMB))
 
         #we finished a page, go to the next page
         driver.find_element_by_xpath(f'//*[@id="hikashop_category_information_module_88"]/div/form/div/div/ul/a[{i}]').click()
