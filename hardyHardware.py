@@ -51,10 +51,16 @@ def main():
             EC.presence_of_element_located(MainLocators.PRODUCTS_LISTING_BREADCRUMB))
         #loop the first 3 pages
         for page in range(0,NUM_OF_PAGES):
+            if page != 0:
+                # go to the next page unless it's our first iteration
+                driver.find_element_by_xpath(f'//*[@id="hikashop_category_information_module_88"]/div/form/div/div/ul/li[{page + 3}]/a').click()
+                # check that the page has loaded
+                exwait = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, 'hikashop_products_listing')))
             ##loop through all of the products in the page
             elements = driver.find_element(By.CLASS_NAME, "hikashop_products")
             num_of_elements = len (elements.find_elements (By.CLASS_NAME, "hikashop_container"))
-            for x in range (0, 2):
+            for x in range (0, num_of_elements):
                 #I have to re-initialize the elements every loop run because every time I go back to the product's page the DOM changes.
                 elements = driver.find_elements(*MainLocators.ALL_PRODUCTS)
                 element = elements[x]
@@ -84,12 +90,6 @@ def main():
                 #wait until the page has loaded
                 exwait = WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located(MainLocators.PRODUCTS_LISTING_BREADCRUMB))
-
-            #we finished a page, go to the next page
-            driver.find_element_by_xpath(f'//*[@id="hikashop_category_information_module_88"]/div/form/div/div/ul/a[{page+1}]').click()
-            #check that the page has loaded
-            exwait = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.CLASS_NAME, 'hikashop_products_listing')))
 
     finally:
         driver.quit()
